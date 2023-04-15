@@ -18,6 +18,12 @@ var Messages = {
     for (let message of messages) {
       Messages._data[message.message_id] = Messages._conform(message);
     }
+    // submit first message on chatterbox
+    // _data: {
+    // undefined: {username: aaa, text: test};
+    // }
+    // submit second message on chatterbox
+    // undefined: {username: bbb, text: test};
 
     // only invoke the callback if something changed
     if (Object.keys(Messages._data).length !== length) {
@@ -32,5 +38,5 @@ var Messages = {
     message.roomname = message.roomname || '';
     return message;
   }
-  
+
 };

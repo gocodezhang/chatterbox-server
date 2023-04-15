@@ -11,8 +11,11 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+// database
+var messages = [];
 
 var requestHandler = function(request, response) {
+  console.log(messages);
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -29,6 +32,9 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
+  // request.on('data', (chunk) => {
+  //   body.push(chunk);
+  // });
   // The outgoing status.
   var statusCode = 200;
 
@@ -39,7 +45,7 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'text/plain';
+  headers['Content-Type'] = 'application/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -50,9 +56,41 @@ var requestHandler = function(request, response) {
   // response.end() will be the body of the response - i.e. what shows
   // up in the browser.
   //
+
+  const { method, url } = request;
+  // first condition
+  // POST add resource
+  // add new resource to data
+  if (method === 'POST' && url === '/classes/messages') {
+    statusCode = 201;
+    response.writeHead(statusCode, headers);
+    request.on('data', (chunk) => {
+      let message = JSON.parse(chunk.toString());
+      if (!message.message_id) {
+        message.message_id = messages.length + 1;
+      }
+      message = JSON.stringify(message);
+      if (!messages.includes(message)) {
+        messages.push(message);
+      }
+    });
+  }
+  // second condition
+  if (url !== '/classes/messages') {
+    statusCode = 404;
+    response.writeHead(statusCode, headers);
+  }
+
+  // parse every element in messages
+  const responseBody = messages.map(function(message) {
+    return JSON.parse(message);
+  });
+
+  // response.write(JSON.stringify(responseBody));
+
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  response.end(JSON.stringify(responseBody));
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -70,3 +108,5 @@ var defaultCorsHeaders = {
   'access-control-allow-headers': 'content-type, accept, authorization',
   'access-control-max-age': 10 // Seconds.
 };
+
+exports.requestHandler = requestHandler;
